@@ -1,5 +1,12 @@
 import Foundation
 
+public func printChapter(chapter: Int, _ problems: () -> ()) {
+    print()
+    print("     chapter 3")
+    print(" ------------------ ")
+    problems()
+}
+
 public func printExample(chapter: Int, _ answer: () -> ()) {
     print("chapter \(chapter) example")
     answer()

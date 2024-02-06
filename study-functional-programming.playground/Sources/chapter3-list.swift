@@ -34,11 +34,11 @@ func chapter3_1() {
 }
 
 
-class List<T> {
-    let head: T
+public class List<T> {
+    let head: T?
     var next: List<T>?
     
-    init(head: T, next: List<T>?) {
+    init(head: T?, next: List<T>?) {
         self.head = head
         self.next = next
     }
@@ -90,7 +90,8 @@ public func c3p3() {
 public func c3p4() {
     // dropWhile 구현. 이 함수는 인자로 주어진 함수를 만족하는 연속적인 원소를 삭제한다.
     func dropWhile<T>(l: List<T>, f: (T) -> Bool) -> List<T>? {
-        guard f(l.head) == true else { return l }
+        guard let head = l.head else { return nil }
+        guard f(head) == true else { return l }
         guard let next = l.next else { return nil }
         
         return dropWhile(l: next, f: f)
@@ -109,3 +110,10 @@ public func c3p5() {
     
 }
 
+public func c3p0_2() {
+    func foldRight<A, B>(xs: List<A>?, z: B, f: (A, B) -> B) -> B {
+        guard let xs = xs, let head = xs.head else { return z }
+        
+        return f(head, foldRight(xs: xs.next, z: z, f: f))
+    }
+}
