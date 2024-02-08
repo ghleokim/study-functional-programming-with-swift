@@ -34,13 +34,26 @@ func chapter3_1() {
 }
 
 
-public class List<T> {
+public class List<T>: CustomStringConvertible {
     let head: T?
     var next: List<T>?
     
     init(head: T?, next: List<T>?) {
         self.head = head
         self.next = next
+    }
+    
+    public var description: String {
+        guard let head = self.head else { return "end." }
+        
+        var resultString = "\(head),"
+        
+        if let next = self.next {
+            resultString += next.description
+        } else {
+            resultString += "end."
+        }
+        return resultString
     }
 }
 

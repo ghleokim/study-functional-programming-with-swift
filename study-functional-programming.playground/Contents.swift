@@ -24,4 +24,6 @@ printChapter(chapter: 5) {
     c5p1()
     c5p2()
     c5p3()
+    c5p4()
+    c5p5()
 }

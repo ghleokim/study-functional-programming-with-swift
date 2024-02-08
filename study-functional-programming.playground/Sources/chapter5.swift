@@ -17,7 +17,7 @@ class Stream<A> {
     var head: (() -> A)?
     var tail: (() -> Stream<A>)?
     
-    init(head: (() -> A)?, tail: (() -> Stream<A>)?) {
+    init(head: (() -> A)?, tail: @escaping (() -> Stream<A>)?) {
         self.head = head
         self.tail = tail
     }
@@ -175,44 +175,119 @@ public func c5p3() {
     
     
     printProblem(chapter: 5, problem: 3) {
-        //        Optional(1)
-        //         Optional(2)
-        //         Optional(3)
-        //         Optional(4)
-        printAnswer(oldList.head)
-        printAnswer(oldList.next?.head)
-        printAnswer(oldList.next?.next?.head)
-        printAnswer(oldList.next?.next?.next?.head)
+        printAnswer(oldList)
+        printAnswer(oldList.head)                   // Optional(1)
+        printAnswer(oldList.next?.head)             // Optional(2)
+        printAnswer(oldList.next?.next?.head)       // Optional(3)
+        printAnswer(oldList.next?.next?.next?.head) // Optional(4)
         printAnswer(" ---- ")
-        
-        //          ----
-        //         Optional(1)
-        //         Optional(2)
-        //         nil
-        //         nil
-        
-        printAnswer(newList.head)
-        printAnswer(newList.next?.head)
-        printAnswer(newList.next?.next?.head)
-        printAnswer(newList.next?.next?.next?.head)
+        printAnswer(newList)
+        printAnswer(newList.head)                   // Optional(1)
+        printAnswer(newList.next?.head)             // Optional(2)
+        printAnswer(newList.next?.next?.head)       // nil
+        printAnswer(newList.next?.next?.next?.head) // nil
         printAnswer(" ---- ")
     }
 }
 
+extension Stream {
+    func forAll(p: @escaping (A) -> Bool) -> Bool {
+        func fa(stream: Stream<A>, p: (A) -> Bool) -> Bool {
+            guard let head = stream.head?() else { return true } // end of stream
+            if p(head) {
+                return fa(stream: stream.tail?() ?? .empty, p: p)
+            } else {
+                return false
+            }
+        }
+        return fa(stream: self, p: p)
+    }
+}
 
 
+public func c5p4() {
+    let evenStream = Stream { 2 } tail: {
+        return Stream(head: { 4 }, tail: {
+            return Stream(head: { 6 }, tail: {
+                return Stream(head: { 8 }, tail: nil)
+            })
+        })
+    }
+    
+    let oddStream = Stream { 2 } tail: {
+        return Stream(head: { 4 }, tail: {
+            return Stream(head: { 7 }, tail: {
+                return Stream(head: { 8 }, tail: nil)
+            })
+        })
+    }
+    
+    printProblem(chapter: 5, problem: 4) {
+        let isEvenStreamEven = evenStream.forAll { $0 % 2 == 0 }
+        printAnswer("evenStream -> \(evenStream.toList())")             // evenStream -> 2,4,6,8,end.
+        printAnswer("isEvenStreamEven -> \(isEvenStreamEven)")          // isEvenStreamEven -> true
+        printAnswer(" ---- ")
+        
+        let isOddStreamEven = oddStream.forAll { $0 % 2 == 0 }
+        printAnswer("oddStream -> \(oddStream.toList())")               // oddStream -> 2,4,7,8,end.
+        printAnswer("isOddStreamEven -> \(isOddStreamEven)")            // isOddStreamEven -> true
+        printAnswer(" ---- ")
+    }
+}
 
+extension Stream {
+    func foldRight<B>(
+        z: () -> B,
+        f: @escaping ((A, () -> B) -> B)
+    ) -> B {
+        if self.isEmpty {
+            return z()
+        } else {
+            return f(self.head!()) {
+                tail?().foldRight(z: z, f: f) ?? z()
+            }
+        }
+    }
+}
 
+// problem 5.5 foldRight 이용하여 takeWhile 구현
+extension Stream {
+    func takeWhile(foldRight p: @escaping (A) -> Bool) -> Stream<A> {
+        foldRight {
+            // z : when empty
+            return .empty
+        } f: { element, f in
+            if p(element) {
+                return f()
+            } else {
+                return .empty
+            }
+        }
+    }
+}
 
+public func c5p5() {
+    let stream = Stream { 4 } tail: {
+        return Stream(head: { 2 }, tail: {
+            return Stream(head: { 3 }, tail: {
+                return Stream(head: { 4 }, tail: nil)
+            })
+        })
+    }
+    
+    let oldList = stream.toList()
+    let takeWhileEvenNumber = stream.takeWhile(p: { $0 % 2 == 0 })
+    let takeWhileFoldRightEvenNumber = stream.takeWhile(foldRight: { $0 % 2 == 0 })
+    
+    
+    printProblem(chapter: 5, problem: 3) {
+        printAnswer(oldList)
+        printAnswer(" ---- ")
+        printAnswer(takeWhileEvenNumber.toList())
+        printAnswer(" ---- ")
+        printAnswer(takeWhileFoldRightEvenNumber.toList()) // not working
+        printAnswer(" ---- ")
+    }
+}
 
-
-
-
-
-//private func foldRight<A, B>(xs: List<A>, z: B, f: (A, B) -> B) -> B {
-//    guard let head = xs.head else { return z }
-//
-//    return f(head, foldRight(xs: xs.next, z: z, f: f))
-//}
-//
 
