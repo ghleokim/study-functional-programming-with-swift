@@ -303,3 +303,103 @@ public func c5_2p8() {
         }
     }
 }
+
+extension StreamEnum where T == Int {
+    static func from(n: T) -> StreamEnum<T> {
+        return .Cons(head: { n }, tail: { from(n: n+1)} )
+    }
+}
+
+public func c5_2p9() {
+    let fromTwoThousand = StreamEnum.from(n: 2_000)
+    
+    printProblem(chapter: "5.2", problem: "9") {
+        var headStream: StreamEnum<Int> = fromTwoThousand
+        for i in 1..<10 {
+            switch headStream {
+            case .Cons(let head, let tail):
+                printAnswer("\(i)th head: ", head())
+                headStream = tail()
+            case .Empty:
+                printAnswer("Empty")
+            }
+        }
+    }
+}
+
+extension StreamEnum where T == Int {
+    static func fibs() -> StreamEnum<T> {
+        func fb(current: T, next: T) -> StreamEnum<T> {
+            return .Cons(head: { current }, tail: { fb(current: next, next: current + next) })
+        }
+        return fb(current: 0, next: 1)
+    }
+}
+
+public func c5_2p10() {
+    let fibsStream = StreamEnum.fibs()
+    
+    printProblem(chapter: "5.2", problem: "10") {
+        var headStream: StreamEnum<Int> = fibsStream
+        for i in 1..<11 {
+            switch headStream {
+            case .Cons(let head, let tail):
+                printAnswer("\(i)th head: ", head())
+                headStream = tail()
+            case .Empty:
+                printAnswer("Empty")
+            }
+        }
+    }
+}
+
+extension StreamEnum {
+    // z: initial status
+    // f: function that creates next status and next value of stream
+    func unfold<S>(z: S, f: @escaping (S) -> (T, S)?) -> StreamEnum<T> {
+        switch f(z) {
+        case .some(let pair):
+            return .Cons(head: { pair.0 }, tail: { unfold(z: pair.1, f: f) })
+        case .none:
+            return .Empty
+        }
+    }
+}
+
+// extension for problem 11
+extension Date {
+    static var currentTimeStamp: Int64 {
+        return Int64(Date().timeIntervalSince1970 * 1000)
+    }
+}
+
+public func c5_2p11() {
+    let runForTwoMilliSecond: (Int64) -> (String, Int64)? = { originalTimeStamp in
+        let currentTimeStamp = Date.currentTimeStamp
+        if currentTimeStamp - originalTimeStamp > 2 {
+            return nil
+        } else {
+            return ("Executed in \(currentTimeStamp)", originalTimeStamp)
+        }
+    }
+    
+    let streamOfTwo = StreamEnum.constant(of: "2")
+    
+    printProblem(chapter: "5.2", problem: "11") {
+        var headStream = streamOfTwo.unfold(z: Date.currentTimeStamp, f: runForTwoMilliSecond)
+        var i: Int = 0
+        
+        // Labeled Statements: escape while loop inside a switch https://docs.swift.org/swift-book/documentation/the-swift-programming-language/controlflow/#Labeled-Statements
+    outerLoop: while (true) {
+        switch headStream {
+        case .Cons(let head, let tail):
+            printAnswer("\(i)th head: ", head())
+            headStream = tail()
+            i += 1
+        case .Empty:
+            printAnswer("Empty")
+            break outerLoop
+        }
+    }
+    }
+}
