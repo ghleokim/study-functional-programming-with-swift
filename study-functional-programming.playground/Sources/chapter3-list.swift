@@ -44,14 +44,14 @@ public class List<T>: CustomStringConvertible {
     }
     
     public var description: String {
-        guard let head = self.head else { return "end." }
+        guard let head = self.head else { return "End of the list." }
         
         var resultString = "\(head),"
         
         if let next = self.next {
             resultString += next.description
         } else {
-            resultString += "end."
+            resultString += "End of the list."
         }
         return resultString
     }

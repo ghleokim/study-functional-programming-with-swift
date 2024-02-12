@@ -17,7 +17,7 @@ class Stream<A> {
     var head: (() -> A)?
     var tail: (() -> Stream<A>)?
     
-    init(head: (() -> A)?, tail: @escaping (() -> Stream<A>)?) {
+    init(head: (() -> A)?, tail: (() -> Stream<A>)?) {
         self.head = head
         self.tail = tail
     }
