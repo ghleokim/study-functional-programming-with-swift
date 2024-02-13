@@ -484,3 +484,61 @@ public func c5_2p12() {
         printAnswer()
     }
 }
+
+// MARK: 5.13
+
+extension StreamEnum {
+    func map_unfold<B>(f: @escaping (T) -> B) -> StreamEnum<B> {
+        return .unfold(z: { self }) { stream in
+            switch stream() {
+            case .Cons(let head, let tail):
+                return (f(head()), tail)
+            case .Empty:
+                return nil
+            }
+        }
+    }
+    
+    func take_unfold(n: Int) -> StreamEnum<T> {
+        return .unfold(z: ({ self }, n)) { stream, count in
+            guard count > 0 else { return nil }
+            
+            switch stream() {
+            case .Cons(let head, let tail):
+                return (head(), (tail, count-1))
+            case .Empty:
+                return nil
+            }
+        }
+    }
+    
+    func takeWhile_unfold(p: @escaping (T) -> Bool) -> StreamEnum<T> {
+        return .unfold(z: { self }) { stream in
+            switch stream() {
+            case .Cons(let head, let tail):
+                let headValue = head()
+                if p(headValue) {
+                    return (headValue, tail)
+                } else {
+                    return nil
+                }
+            case .Empty:
+                return nil
+            }
+        }
+    }
+//    func zipWith()
+//    func zipAll()
+}
+
+public func c5_2p13() {
+    var stream = StreamEnum.of(1,2,3,4,5)
+    
+    printProblem(chapter: "5.2", problem: "13") {
+        printAnswer("stream:", stream)
+        
+        printAnswer("stream.map_unfold(+10):", stream.map_unfold { $0 + 10 } ) // 11, 12, 13
+        printAnswer("stream.take_unfold(n: 2): ", stream.take_unfold(n: 2)) // 1,2
+        printAnswer("stream.takeWhile_unfold(<3): ", stream.takeWhile_unfold { $0 < 4}) // 1,2
+    }
+}
