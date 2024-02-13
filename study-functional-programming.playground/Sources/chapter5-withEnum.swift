@@ -353,10 +353,11 @@ public func c5_2p10() {
     }
 }
 
+// MARK: 5.11
 extension StreamEnum {
     // z: initial status
     // f: function that creates next status and next value of stream
-    func unfold<S>(z: S, f: @escaping (S) -> (T, S)?) -> StreamEnum<T> {
+    static func unfold<S>(z: S, f: @escaping (S) -> (T, S)?) -> StreamEnum<T> {
         switch f(z) {
         case .some(let pair):
             return .Cons(head: { pair.0 }, tail: { unfold(z: pair.1, f: f) })
@@ -383,10 +384,8 @@ public func c5_2p11() {
         }
     }
     
-    let streamOfTwo = StreamEnum.constant(of: "2")
-    
     printProblem(chapter: "5.2", problem: "11") {
-        var headStream = streamOfTwo.unfold(z: Date.currentTimeStamp, f: runForTwoMilliSecond)
+        var headStream = StreamEnum<String>.unfold(z: Date.currentTimeStamp, f: runForTwoMilliSecond)
         var i: Int = 0
         
         // Labeled Statements: escape while loop inside a switch https://docs.swift.org/swift-book/documentation/the-swift-programming-language/controlflow/#Labeled-Statements
@@ -401,5 +400,87 @@ public func c5_2p11() {
             break outerLoop
         }
     }
+    }
+}
+
+// MARK: 5.12
+extension StreamEnum {
+    static func fibs_unfold() -> StreamEnum<T> where T == Int {
+        return .unfold(z: (0, 1)) { tuple in
+            return ( tuple.1, (tuple.1, tuple.0 + tuple.1) )
+        }
+    }
+    
+    static func from_unfold(n: T) -> StreamEnum<T> where T == Int {
+        return .unfold(z: n) { previousValue in
+            return (previousValue, previousValue + 1)
+        }
+    }
+    
+    static func constant_unfold(of element: T) -> StreamEnum<T> {
+        return .unfold(z: element) { element in
+            return ( element, element )
+        }
+    }
+    
+    static func ones_unfold() -> StreamEnum<T> where T == Int {
+        return .constant_unfold(of: 1)
+    }
+}
+
+public func c5_2p12() {
+    printProblem(chapter: "5.22", problem: "12") {
+        var headStream: StreamEnum = .fibs_unfold()
+        printAnswer("* fibs_unfold")
+        for i in 1..<11 {
+            switch headStream {
+            case .Cons(let head, let tail):
+                printAnswer("\(i)th head: ", head())
+                headStream = tail()
+            case .Empty:
+                printAnswer("Empty")
+            }
+        }
+        printAnswer()
+        
+        headStream = .from_unfold(n: 2_000)
+        printAnswer("* from_unfold")
+        for i in 1..<11 {
+            switch headStream {
+            case .Cons(let head, let tail):
+                printAnswer("\(i)th head: ", head())
+                headStream = tail()
+            case .Empty:
+                printAnswer("Empty")
+            }
+        }
+        printAnswer()
+
+        
+        var secondHeadStream: StreamEnum = .constant_unfold(of: "hello")
+        printAnswer("* constant_unfold")
+        for i in 1..<11 {
+            switch secondHeadStream {
+            case .Cons(let head, let tail):
+                printAnswer("\(i)th head: ", head())
+                secondHeadStream = tail()
+            case .Empty:
+                printAnswer("Empty")
+            }
+        }
+        printAnswer()
+
+        headStream = .ones_unfold()
+        printAnswer("* ones_unfold")
+        for i in 1..<11 {
+            switch headStream {
+            case .Cons(let head, let tail):
+                printAnswer("\(i)th head: ", head())
+                headStream = tail()
+            case .Empty:
+                printAnswer("Empty")
+            }
+        }
+        printAnswer()
     }
 }
