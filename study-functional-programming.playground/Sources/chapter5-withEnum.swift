@@ -569,6 +569,42 @@ public func c5_2p13() {
         printAnswer("stream.zipWith_unfold((5,4,3,2,1), +): ", stream.zipWith_unfold(that: thatStream, f: +))
         
         let anotherThatStream = StreamEnum.of(5,4,3)
+        printAnswer("stream.zipWith_unfold((5,4,3), +): ", stream.zipWith_unfold(that: anotherThatStream, f: +))
         printAnswer("stream.zipAll_unfold((5,4,3)): ", stream.zipAll_unfold(that: anotherThatStream))
     }
 }
+
+// MARK: 5.14
+
+// startsWith 구현. 어떤 stream이 다른 stream의 접두사인지 여부를 검사.
+
+extension StreamEnum {
+    func startsWith(stream that: StreamEnum<T>) -> Bool where T: Comparable {
+        return self.zipAll_unfold(that: that)
+            .takeWhile_unfold { $0.1 != nil }
+            .forAll { $0.0 == $0.1 }
+        
+        // to print out internal logic
+        let stream = self.zipAll_unfold(that: that)
+        let stream2 = stream.takeWhile_unfold { $0.1 != nil }
+        let result = stream2.forAll { $0.0 == $0.1 }
+        
+        printAnswer("  - stream  ->", stream)
+        printAnswer("  - stream2 ->", stream2)
+        printAnswer("  - result  ->", result)
+        
+        return result
+    }
+}
+
+public func c5_2p14() {
+    let stream = StreamEnum.of(1,2,3,4,5)
+    
+    printProblem(chapter: "5.2", problem: "14") {
+        printAnswer("stream:", stream)
+        
+        printAnswer("stream.startsWith(1,2,3):", stream.startsWith(stream: StreamEnum.of(1,2,3))) // true
+        printAnswer("stream.startsWith(1,2,4):", stream.startsWith(stream: StreamEnum.of(1,2,4))) // false
+    }
+}
+
