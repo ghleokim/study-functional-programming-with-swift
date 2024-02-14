@@ -527,12 +527,36 @@ extension StreamEnum {
             }
         }
     }
-//    func zipWith()
-//    func zipAll()
+    
+    func zipWith_unfold<B, C>(that: StreamEnum<B>, f: @escaping (T, B) -> C) -> StreamEnum<C> {
+        return .unfold(z: ( { self }, { that })) { streamTuple in
+            switch (streamTuple.0(), streamTuple.1()) {
+            case (.Cons(let selfHead, let selfTail), .Cons(let thatHead, let thatTail)):
+                return ( f(selfHead(), thatHead()), (selfTail, thatTail))
+            default:
+                return nil
+            }
+        }
+    }
+    
+    func zipAll_unfold<B>(that: StreamEnum<B>) -> StreamEnum<(T?, B?)> {
+        return .unfold(z: ({ self }, { that })) { streamTuple in
+            switch (streamTuple.0(), streamTuple.1()) {
+            case (.Cons(let selfHead, let selfTail), .Cons(let thatHead, let thatTail)):
+                return (( selfHead(), thatHead() ) , ( selfTail, thatTail ))
+            case (.Empty, .Cons(let thatHead, let thatTail)):
+                return (( nil, thatHead() ) , ( { .Empty }, thatTail ))
+            case (.Cons(let selfHead, let selfTail), .Empty):
+                return (( selfHead(), nil ) , ( selfTail, { .Empty } ))
+            case (.Empty, .Empty):
+                return nil
+            }
+        }
+    }
 }
 
 public func c5_2p13() {
-    var stream = StreamEnum.of(1,2,3,4,5)
+    let stream = StreamEnum.of(1,2,3,4,5)
     
     printProblem(chapter: "5.2", problem: "13") {
         printAnswer("stream:", stream)
@@ -540,5 +564,11 @@ public func c5_2p13() {
         printAnswer("stream.map_unfold(+10):", stream.map_unfold { $0 + 10 } ) // 11, 12, 13
         printAnswer("stream.take_unfold(n: 2): ", stream.take_unfold(n: 2)) // 1,2
         printAnswer("stream.takeWhile_unfold(<3): ", stream.takeWhile_unfold { $0 < 4}) // 1,2
+        
+        let thatStream = StreamEnum.of(5,4,3,2,1)
+        printAnswer("stream.zipWith_unfold((5,4,3,2,1), +): ", stream.zipWith_unfold(that: thatStream, f: +))
+        
+        let anotherThatStream = StreamEnum.of(5,4,3)
+        printAnswer("stream.zipAll_unfold((5,4,3)): ", stream.zipAll_unfold(that: anotherThatStream))
     }
 }
