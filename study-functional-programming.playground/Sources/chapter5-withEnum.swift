@@ -632,3 +632,27 @@ public func c5_2p15() {
         printAnswer("stream.tails_unfold():", stream.tails_unfold())
     }
 }
+
+// MARK: 5.16
+
+extension StreamEnum {
+    func scanRight<U>(z: U, f: @escaping (T, U) -> U) -> StreamEnum<U> {
+        
+        return self.foldRight(z: {(z,StreamEnum<U>.of(z))}) { headValue, tailValueStreamTuple in
+            let resultValue = f(headValue, tailValueStreamTuple().0)
+            let resultStream = StreamEnum<U>.Cons(head: { resultValue }, tail: { tailValueStreamTuple().1 })
+            
+            return (resultValue, resultStream)
+        }.1
+    }
+}
+
+public func c5_2p16() {
+    let stream = StreamEnum.of(1,2,3,4,5)
+    
+    printProblem(chapter: "5.2", problem: "16") {
+        printAnswer("stream:", stream)
+        
+        printAnswer("stream.scanRight(0, +):", stream.scanRight(z: 0, f: +))
+    }
+}
