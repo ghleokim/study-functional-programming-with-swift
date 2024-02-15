@@ -608,3 +608,27 @@ public func c5_2p14() {
     }
 }
 
+// MARK: 5.15
+
+extension StreamEnum {
+    func tails_unfold() -> StreamEnum<StreamEnum<T>> {
+        return .unfold(z: self ) { stream in
+            switch stream {
+            case .Cons(_, let tail):
+                return (stream, tail())
+            case .Empty:
+                return nil
+            }
+        }
+    }
+}
+
+public func c5_2p15() {
+    let stream = StreamEnum.of(1,2,3,4,5)
+    
+    printProblem(chapter: "5.2", problem: "15") {
+        printAnswer("stream:", stream)
+        
+        printAnswer("stream.tails_unfold():", stream.tails_unfold())
+    }
+}

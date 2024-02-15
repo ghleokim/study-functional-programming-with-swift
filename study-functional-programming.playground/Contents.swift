@@ -44,5 +44,6 @@ printChapter(chapter: "5.2") {
     c5_2p12()
     c5_2p13()
     c5_2p14()
+    c5_2p15()
 }
 
